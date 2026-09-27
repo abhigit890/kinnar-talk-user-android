@@ -55,8 +55,9 @@ jobs:
           echo "===== SHA-1 that SHOULD be registered in Firebase / Google Cloud ====="
           echo "52:CE:16:70:01:27:B3:55:29:73:2B:56:09:B1:B8:93:87:EB:5B:4C"
           echo ""
-          echo "===== SHA-1 actually used to sign this build's APK ====="
-          keytool -printcert -jarfile android/app/build/outputs/apk/debug/app-debug.apk | grep -i "SHA1:"
+          echo "===== Full cert info actually used to sign this build's APK ====="
+          keytool -printcert -jarfile android/app/build/outputs/apk/debug/app-debug.apk || echo "keytool step failed, but continuing so the build doesn't get marked as failed"
+        continue-on-error: true
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
