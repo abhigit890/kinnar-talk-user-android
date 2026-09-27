@@ -1,0 +1,9 @@
+{
+  "appId": "com.kinnartalk.user",
+  "appName": "Kinnar Talk",
+  "webDir": "www",
+  "bundledWebRuntime": false,
+  "android": {
+    "allowMixedContent": false
+  }
+}
