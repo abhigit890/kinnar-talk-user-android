@@ -39,6 +39,9 @@ jobs:
         run: |
           mkdir -p ~/.android
           cp debug.keystore ~/.android/debug.keystore
+          cp debug.keystore android/app/debug.keystore
+          python3 patch_gradle_signing.py android/app/build.gradle
+          cat android/app/build.gradle
 
       - name: Sync Capacitor
         run: npx cap sync android
