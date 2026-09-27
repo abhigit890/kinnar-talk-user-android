@@ -56,7 +56,14 @@ jobs:
           echo "52:CE:16:70:01:27:B3:55:29:73:2B:56:09:B1:B8:93:87:EB:5B:4C"
           echo ""
           echo "===== Full cert info actually used to sign this build's APK ====="
-          keytool -printcert -jarfile android/app/build/outputs/apk/debug/app-debug.apk || echo "keytool step failed, but continuing so the build doesn't get marked as failed"
+          APKSIGNER=$(find "$ANDROID_HOME" "$ANDROID_SDK_ROOT" /usr/local/lib/android -iname apksigner 2>/dev/null | head -n 1)
+          if [ -n "$APKSIGNER" ]; then
+            echo "Using apksigner: $APKSIGNER"
+            "$APKSIGNER" verify --print-certs android/app/build/outputs/apk/debug/app-debug.apk
+          else
+            echo "apksigner not found, falling back to keytool"
+            keytool -printcert -jarfile android/app/build/outputs/apk/debug/app-debug.apk
+          fi
         continue-on-error: true
 
       - name: Upload APK
