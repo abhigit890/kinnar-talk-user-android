@@ -1944,7 +1944,20 @@ body{
         await auth.signInWithPopup(provider);
       }
     } catch (err) {
-      document.getElementById('auth-error').textContent = err.message;
+      // Surface everything we can about the error (code, message, and any
+      // extra fields the native plugin attached) instead of just err.message —
+      // native Google Sign-In failures often carry the real reason in a
+      // "code" field while message stays a generic "something went wrong".
+      let detail = (err && err.message) || String(err);
+      try {
+        const extra = {};
+        if (err && err.code !== undefined) extra.code = err.code;
+        if (err && err.name !== undefined) extra.name = err.name;
+        const extraStr = JSON.stringify(extra);
+        if (extraStr && extraStr !== '{}') detail += ' | ' + extraStr;
+      } catch (e2) {}
+      document.getElementById('auth-error').textContent = detail;
+      console.error('Google sign-in error (full):', err);
     }
   });
 
