@@ -1839,6 +1839,14 @@ body{
   firebase.initializeApp(firebaseConfig);
   const auth = firebase.auth();
   const db = firebase.firestore();
+  // Inside the native Android app (Capacitor), Google blocks OAuth sign-in
+  // inside an embedded WebView, so signInWithPopup/signInWithRedirect can
+  // never complete there. Use the native Google Sign-In plugin instead —
+  // see the Google button handler below, which branches on this.
+  const isNativeApp = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
+  if (isNativeApp && window.Capacitor.Plugins && window.Capacitor.Plugins.GoogleAuth) {
+    window.Capacitor.Plugins.GoogleAuth.initialize();
+  }
   // Kinnar Talk's User App, Astrologer App and Admin Panel are all hosted
   // under the same GitHub Pages origin (different paths only), so by default
   // they'd share one browser-wide Firebase Auth session — logging out of any
@@ -1919,11 +1927,22 @@ body{
   document.getElementById('auth-google-btn').addEventListener('click', async () => {
     document.getElementById('auth-error').textContent = '';
     try {
-      const provider = new firebase.auth.GoogleAuthProvider();
-      // Always show Google's account-chooser instead of silently signing
-      // back in with whichever Google account was used last on this device.
-      provider.setCustomParameters({ prompt: 'select_account' });
-      await auth.signInWithPopup(provider);
+      if (isNativeApp && window.Capacitor.Plugins && window.Capacitor.Plugins.GoogleAuth) {
+        // Native app: use the device's real Google Sign-In flow (native account
+        // picker), then hand the resulting ID token to Firebase — this is the
+        // only reliable way to sign in with Google from inside the app's WebView.
+        const result = await window.Capacitor.Plugins.GoogleAuth.signIn();
+        const idToken = result && result.authentication && result.authentication.idToken;
+        if (!idToken) throw new Error('Google sign-in did not return a token.');
+        const credential = firebase.auth.GoogleAuthProvider.credential(idToken);
+        await auth.signInWithCredential(credential);
+      } else {
+        const provider = new firebase.auth.GoogleAuthProvider();
+        // Always show Google's account-chooser instead of silently signing
+        // back in with whichever Google account was used last on this device.
+        provider.setCustomParameters({ prompt: 'select_account' });
+        await auth.signInWithPopup(provider);
+      }
     } catch (err) {
       document.getElementById('auth-error').textContent = err.message;
     }
