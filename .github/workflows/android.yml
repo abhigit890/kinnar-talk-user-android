@@ -43,6 +43,11 @@ jobs:
           python3 patch_gradle_signing.py android/app/build.gradle
           cat android/app/build.gradle
 
+      - name: Add the Google Sign-In client ID directly into strings.xml (extra safety net)
+        run: |
+          python3 patch_strings_xml.py android/app/src/main/res/values/strings.xml 323610578849-90tgnjsud26kn869aj6no4jfn6bae4ue.apps.googleusercontent.com
+          cat android/app/src/main/res/values/strings.xml
+
       - name: Sync Capacitor
         run: npx cap sync android
 
