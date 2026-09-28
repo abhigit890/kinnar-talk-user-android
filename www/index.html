@@ -4803,6 +4803,21 @@ db.collection('astrologers').onSnapshot((snap) => {
   if (document.getElementById("screen-detail")?.classList.contains("active") && window.currentDetailAstroId) {
     refreshDetailFollowButton();
   }
+}, (err) => {
+  // Surface the real Firestore error visibly in the app itself, so it can be
+  // read directly on a device without any dev-tools/console access (e.g. a
+  // native Capacitor build on a phone/tablet).
+  console.error('astrologers onSnapshot error:', err);
+  try {
+    let banner = document.getElementById('astro-load-error-banner');
+    if (!banner) {
+      banner = document.createElement('div');
+      banner.id = 'astro-load-error-banner';
+      banner.style.cssText = 'position:fixed;left:8px;right:8px;bottom:8px;z-index:99999;background:#b00020;color:#fff;padding:10px 12px;border-radius:8px;font-size:12px;line-height:1.4;word-break:break-word;box-shadow:0 2px 10px rgba(0,0,0,.4);';
+      document.body.appendChild(banner);
+    }
+    banner.textContent = 'Astrologers load nahi ho rahe. Error: ' + (err && err.code ? err.code : '') + ' | ' + (err && err.message ? err.message : String(err));
+  } catch (e2) {}
 });
 
 const QUICK_ACTIONS = [
